@@ -1,0 +1,66 @@
+.downloads-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.queue-statsbar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.stat-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.stat-value { font-size: 15px; font-weight: 600; }
+.statsbar-actions { display: flex; gap: 8px; align-items: center; }
+
+.section { display: flex; flex-direction: column; gap: 10px; }
+.section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.queue-list { display: flex; flex-direction: column; gap: 8px; }
+
+.queue-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.queue-item-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.queue-item-name {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+}
+.queue-item-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.queue-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.queue-item-pct { align-self: flex-end; }
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  font-size: 13px;
+}

@@ -1,0 +1,22 @@
+{
+  "name": "arrview",
+  "version": "1.0.0",
+  "description": "ArrView dashboard for SABnzbd, NZBHydra, Sonarr, and Radarr",
+  "scripts": {
+    "dev": "concurrently \"node server.js\" \"vite\"",
+    "build": "vite build",
+    "start": "node server.js",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "concurrently": "^8.2.2",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "vite": "^5.0.8"
+  }
+}

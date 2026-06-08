@@ -1,0 +1,199 @@
+.shows-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Stats bar */
+.shows-stats {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.stat-chip { display: flex; flex-direction: column; gap: 2px; }
+.stat-chip-value { font-size: 22px; font-weight: 700; }
+.stat-chip-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* Controls */
+.shows-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.filter-buttons { display: flex; gap: 4px; flex-wrap: wrap; }
+.sort-select {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 5px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  margin-left: auto;
+}
+.sort-select:focus { outline: none; border-color: var(--accent); }
+
+/* Show list */
+.shows-list { display: flex; flex-direction: column; gap: 8px; }
+
+/* Show card */
+.show-card {
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.show-card:hover { border-color: var(--accent); }
+.show-card.expanded { border-color: var(--accent); }
+
+.show-card-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.show-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.show-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.show-title { font-size: 14px; }
+.show-meta { display: flex; align-items: center; gap: 8px; }
+.show-progress { display: flex; align-items: center; gap: 8px; }
+.show-progress .progress-bar { flex: 1; max-width: 120px; }
+
+.missing-badge {
+  background: rgba(248,81,73,0.15);
+  color: var(--danger);
+  border-radius: 10px;
+  padding: 1px 6px;
+  font-size: 11px;
+  margin-left: 6px;
+}
+
+.expand-icon {
+  font-size: 11px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
+.series-remove-confirm {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* Episodes panel */
+.show-episodes {
+  border-top: 1px solid var(--border-subtle);
+  margin-top: 12px;
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  cursor: default;
+}
+
+.season-block { display: flex; flex-direction: column; gap: 2px; }
+.season-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 4px;
+}
+.season-header-clickable {
+  cursor: pointer;
+  padding: 6px 4px;
+  border-radius: 4px;
+  transition: background 0.1s;
+}
+.season-header-clickable:hover { background: var(--bg-card); }
+.season-expand-icon { font-size: 12px; color: var(--text-secondary); width: 12px; }
+.season-header-right { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+
+.episode-row-wrap {
+  border-radius: var(--radius-sm);
+}
+.episode-row-wrap.episode-missing { background: rgba(248,81,73,0.04); border-left: 2px solid var(--danger); padding-left: 8px; }
+.episode-row-wrap.episode-downloaded { background: rgba(63,185,80,0.08); border-left: 2px solid var(--success); padding-left: 8px; }
+
+.episode-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+}
+.ep-num { width: 70px; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.ep-title { flex: 1; font-size: 13px; }
+.ep-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btn-ep-info {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.btn-ep-info:hover, .btn-ep-info.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.ep-overview {
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 4px 8px 8px 80px;
+  line-height: 1.5;
+}
+
+/* Mini buttons */
+.btn-xs {
+  padding: 2px 8px;
+  font-size: 11px;
+  border-radius: var(--radius-sm);
+  background: rgba(63,185,80,0.15);
+  color: var(--success);
+  border: 1px solid rgba(63,185,80,0.3);
+}
+.btn-xs:hover:not(:disabled) { background: rgba(63,185,80,0.25); }
+
+.btn-accent {
+  background: rgba(88,166,255,0.15);
+  color: var(--accent);
+  border: 1px solid rgba(88,166,255,0.3);
+}
+.btn-accent:hover:not(:disabled) { background: rgba(88,166,255,0.25); }
