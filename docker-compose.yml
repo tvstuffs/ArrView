@@ -1,0 +1,12 @@
+services:
+  arrview:
+    image: ghcr.io/tvstuffs/arrview:latest
+    container_name: arrview
+    restart: unless-stopped
+    ports:
+      - "7777:7777"
+    environment:
+      PORT: 7777
+      CONFIG_DIR: /data
+    volumes:
+      - ./data:/data
