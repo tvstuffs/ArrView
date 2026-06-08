@@ -113,6 +113,26 @@ PORT=8888 npm start
 
 This project can run as a standalone container.
 
+### Pull from GitHub Container Registry
+
+After pushing to GitHub, the workflow in `.github/workflows/publish-ghcr.yml` publishes the image to GHCR automatically.
+
+```bash
+docker pull ghcr.io/<YOUR-GITHUB-USERNAME>/arrview:latest
+```
+
+### Run the published image
+
+```bash
+docker run --rm -p 7777:7777 \
+  -v "$PWD/arrview-data:/data" \
+  ghcr.io/<YOUR-GITHUB-USERNAME>/arrview:latest
+```
+
+The container serves the dashboard on `http://localhost:7777` and stores saved settings in `/data/config.json`.
+
+### Build locally
+
 ```bash
 # Build the image
 docker build -t arrview .
