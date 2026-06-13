@@ -125,12 +125,26 @@ docker pull ghcr.io/tvstuffs/arrview:latest
 
 ```bash
 docker run -d --name arrview \
-  -p 7777:7777 \
+  --network host \
+  -e PORT=7777 \
   -v "$PWD/arrview-data:/data" \
   ghcr.io/tvstuffs/arrview:latest
 ```
 
 The container serves the dashboard on `http://localhost:7777` and stores saved settings in `/data/config.json`.
+
+> **iOS auto-discovery requires host networking.** The container advertises
+> itself over Bonjour/mDNS so the ArrView iOS app can find it on the network
+> without typing an address. mDNS is **multicast**, which Docker's bridge
+> network does **not** forward — publishing ports (`-p 7777:7777`) only forwards
+> the unicast HTTP traffic, so the advertisement never leaves the container and
+> discovery silently fails. Run with `--network host` (or `network_mode: host`
+> in Compose) so the advertisement reaches the LAN. Notes:
+> - Host networking is **Linux-only**; it does not broadcast to the LAN under
+>   Docker Desktop for Mac/Windows (Docker runs in a VM there).
+> - Ensure the host firewall allows UDP **5353** (mDNS).
+> - If you can't use host networking, the app still works — just choose
+>   **Connect Directly** in setup and enter `http://<host>:7777` manually.
 
 ### Build locally
 
@@ -139,9 +153,11 @@ The container serves the dashboard on `http://localhost:7777` and stores saved s
 docker build -t arrview .
 
 # Run it with a persistent config volume in the background
+# (--network host enables iOS auto-discovery; see the note above)
 mkdir -p ./data
 docker run -d --name arrview \
-  -p 7777:7777 \
+  --network host \
+  -e PORT=7777 \
   -v "$PWD/data:/data" \
   arrview
 ```
