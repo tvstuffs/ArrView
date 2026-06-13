@@ -28,6 +28,21 @@ function saveConfig(config) {
 
 app.get('/api/config', (req, res) => res.json(loadConfig()));
 
+// Identity endpoint used by the ArrView iOS app to confirm a discovered or
+// manually entered host is an ArrView server, and which services it proxies.
+app.get('/api/arrview/identify', (req, res) => {
+  const config = loadConfig();
+  const services = {};
+  for (const svc of ['sabnzbd', 'sonarr', 'radarr', 'nzbhydra']) {
+    services[svc] = Boolean(config[svc]?.url && config[svc]?.apikey);
+  }
+  res.json({
+    app: 'arrview',
+    version: require('./package.json').version,
+    services,
+  });
+});
+
 app.post('/api/config', (req, res) => {
   _sabPathCache = null; // reset so new URL is re-probed
   saveConfig(req.body);
@@ -216,6 +231,48 @@ app.get('/api/sonarr/command/:id', async (req, res) => {
 
 // Interactive release search for a specific episode.
 // Tries Sonarr first; if no results, falls back to a direct NZBHydra search.
+// Direct NZBHydra search returning release-shaped objects — the shared
+// fallback for both interactive search endpoints (Sonarr + Radarr).
+async function hydraDirectSearch(q) {
+  const config = loadConfig();
+  const { url: hydraUrl, apikey: hydraKey } = config.nzbhydra || {};
+  if (!hydraUrl || !hydraKey || !q) return [];
+
+  const hydraRes = await axios.get(`${hydraUrl}/api`, {
+    params: { t: 'search', q, o: 'json', apikey: hydraKey },
+    timeout: 30000,
+  });
+  const rawItems = hydraRes.data?.channel?.item || [];
+  const items = (Array.isArray(rawItems) ? rawItems : [rawItems]);
+
+  return items.map(item => {
+    const attrs = {};
+    const rawAttrs = item['newznab:attr'] || item['attr'] || [];
+    (Array.isArray(rawAttrs) ? rawAttrs : [rawAttrs]).forEach(a => {
+      const n = a?.['@attributes'] || a;
+      if (n?.name) attrs[n.name] = n.value;
+    });
+    const encUrl = item.enclosure?.['@attributes']?.url || item.enclosure?.url || item.link;
+    const sizeBytes = parseInt(attrs.size || item.size || item.enclosure?.['@attributes']?.length || 0);
+    const pubDate = item.pubDate ? new Date(item.pubDate) : null;
+    const ageHours = pubDate ? (Date.now() - pubDate.getTime()) / 3600000 : null;
+    return {
+      guid:       item.guid?.['#text'] || item.guid || item.link,
+      title:      item.title || '(no title)',
+      indexer:    attrs.indexer || attrs.site || 'NZBHydra',
+      size:       sizeBytes,
+      ageHours,
+      protocol:   'usenet',
+      approved:   true,
+      rejections: [],
+      quality:    { quality: { name: 'Unknown' } },
+      // For NZBHydra-direct results we send the NZB URL to SABnzbd ourselves
+      _source:    'nzbhydra',
+      _nzbUrl:    encUrl,
+    };
+  }).filter(r => r._nzbUrl);
+}
+
 app.get('/api/sonarr/release', async (req, res) => {
   const { episodeId, seriesTitle, season, episode } = req.query;
   try {
@@ -233,51 +290,10 @@ app.get('/api/sonarr/release', async (req, res) => {
     }
 
     // 2. Fallback: direct NZBHydra search if Sonarr found nothing
-    const config = loadConfig();
-    const { url: hydraUrl, apikey: hydraKey } = config.nzbhydra || {};
-    if (!hydraUrl || !hydraKey || !seriesTitle) {
-      return res.json([]); // nothing more we can do
-    }
-
+    if (!seriesTitle) return res.json([]);
     const sn = String(season || '').padStart(2, '0');
     const ep = String(episode || '').padStart(2, '0');
-    const q  = `${seriesTitle} S${sn}E${ep}`;
-
-    const hydraRes = await axios.get(`${hydraUrl}/api`, {
-      params: { t: 'search', q, o: 'json', apikey: hydraKey },
-      timeout: 30000,
-    });
-    const rawItems = hydraRes.data?.channel?.item || [];
-    const items = (Array.isArray(rawItems) ? rawItems : [rawItems]);
-
-    const hydraResults = items.map(item => {
-      const attrs = {};
-      const rawAttrs = item['newznab:attr'] || item['attr'] || [];
-      (Array.isArray(rawAttrs) ? rawAttrs : [rawAttrs]).forEach(a => {
-        const n = a?.['@attributes'] || a;
-        if (n?.name) attrs[n.name] = n.value;
-      });
-      const encUrl = item.enclosure?.['@attributes']?.url || item.enclosure?.url || item.link;
-      const sizeBytes = parseInt(attrs.size || item.size || item.enclosure?.['@attributes']?.length || 0);
-      const pubDate = item.pubDate ? new Date(item.pubDate) : null;
-      const ageHours = pubDate ? (Date.now() - pubDate.getTime()) / 3600000 : null;
-      return {
-        guid:       item.guid?.['#text'] || item.guid || item.link,
-        title:      item.title || '(no title)',
-        indexer:    attrs.indexer || attrs.site || 'NZBHydra',
-        size:       sizeBytes,
-        ageHours,
-        protocol:   'usenet',
-        approved:   true,
-        rejections: [],
-        quality:    { quality: { name: 'Unknown' } },
-        // For NZBHydra-direct results we send the NZB URL to SABnzbd ourselves
-        _source:    'nzbhydra',
-        _nzbUrl:    encUrl,
-      };
-    }).filter(r => r._nzbUrl);
-
-    res.json(hydraResults);
+    res.json(await hydraDirectSearch(`${seriesTitle} S${sn}E${ep}`));
   } catch (e) { res.status(e.response?.status || 503).json({ error: e.message }); }
 });
 
@@ -394,6 +410,64 @@ app.post('/api/radarr/command', async (req, res) => {
   try {
     const { baseUrl, headers } = radarrHeaders();
     const r = await axios.post(`${baseUrl}/api/v3/command`, req.body, {
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      timeout: 15000,
+    });
+    res.json(r.data);
+  } catch (e) { res.status(e.response?.status || 503).json({ error: e.message }); }
+});
+
+// Interactive release search for one movie: Radarr's indexers first,
+// NZBHydra fallback — mirrors /api/sonarr/release.
+app.get('/api/radarr/release', async (req, res) => {
+  const { movieId, title, year } = req.query;
+  try {
+    const { baseUrl, headers } = radarrHeaders();
+    const radarrRes = await axios.get(`${baseUrl}/api/v3/release`, {
+      headers,
+      params: { movieId },
+      timeout: 60000,
+    });
+    const radarrResults = (radarrRes.data || []).map(r => ({ ...r, _source: 'radarr' }));
+
+    if (radarrResults.length > 0) {
+      return res.json(radarrResults);
+    }
+
+    if (!title) return res.json([]);
+    res.json(await hydraDirectSearch(year ? `${title} ${year}` : title));
+  } catch (e) { res.status(e.response?.status || 503).json({ error: e.message }); }
+});
+
+// Grab a specific movie release
+app.post('/api/radarr/release', async (req, res) => {
+  try {
+    const { baseUrl, headers } = radarrHeaders();
+    const r = await axios.post(`${baseUrl}/api/v3/release`, req.body, {
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      timeout: 15000,
+    });
+    res.json(r.data);
+  } catch (e) { res.status(e.response?.status || 503).json({ error: e.message }); }
+});
+
+// Delete a movie file from disk
+app.delete('/api/radarr/moviefile/:id', async (req, res) => {
+  try {
+    const { baseUrl, headers } = radarrHeaders();
+    await axios.delete(`${baseUrl}/api/v3/moviefile/${req.params.id}`, { headers, timeout: 15000 });
+    res.json({ success: true });
+  } catch (e) {
+    const msg = e.response?.data?.message || e.response?.data || e.message;
+    res.status(e.response?.status || 503).json({ error: String(msg) });
+  }
+});
+
+// Update movie monitored status (bulk, via Radarr's movie editor)
+app.put('/api/radarr/movie/monitor', async (req, res) => {
+  try {
+    const { baseUrl, headers } = radarrHeaders();
+    const r = await axios.put(`${baseUrl}/api/v3/movie/editor`, req.body, {
       headers: { ...headers, 'Content-Type': 'application/json' },
       timeout: 15000,
     });
@@ -573,4 +647,14 @@ app.listen(PORT, () => {
   console.log(`✅  ArrView API running on http://localhost:${PORT}`);
   console.log(`    Sonarr webhook URL: http://localhost:${PORT}/api/webhooks/sonarr`);
   console.log(`    Radarr webhook URL: http://localhost:${PORT}/api/webhooks/radarr`);
+
+  // Advertise over Bonjour so the ArrView iOS app can auto-discover this
+  // server. Optional dependency — absence just disables auto-discovery.
+  try {
+    const { Bonjour } = require('bonjour-service');
+    new Bonjour().publish({ name: 'ArrView', type: 'arrview', port: Number(PORT) });
+    console.log(`    Bonjour: advertising _arrview._tcp on port ${PORT}`);
+  } catch (_) {
+    console.log('    Bonjour: bonjour-service not installed — iOS auto-discovery disabled');
+  }
 });
