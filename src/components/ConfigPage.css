@@ -64,8 +64,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 16px;
   padding-top: 8px;
+}
+.config-version {
+  flex-basis: 100%;
+  text-align: center;
+  margin: 4px 0 0;
 }
 .config-footer-actions {
   display: flex;

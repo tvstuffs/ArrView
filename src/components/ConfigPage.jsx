@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './ConfigPage.css'
 
 const SERVICES = [
@@ -111,6 +111,16 @@ export default function ConfigPage({ initialConfig = {}, onSave, onBack }) {
   }))
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
+  const [version, setVersion] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/arrview/identify')
+      .then(r => r.json())
+      .then(d => { if (!cancelled) setVersion(d.version) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
 
   function handleChange(service, field, value) {
     setConfig(prev => ({
@@ -212,6 +222,9 @@ export default function ConfigPage({ initialConfig = {}, onSave, onBack }) {
               {saving ? <><span className="spinner" style={{width:16,height:16}} /> Saving…</> : 'Save'}
             </button>
           </div>
+          {version && (
+            <p className="config-version text-sm text-muted">ArrView v{version}</p>
+          )}
         </div>
       </div>
     </div>
