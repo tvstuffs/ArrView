@@ -2,6 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
 const app = express();
 const PORT = process.env.PORT || 7777;
@@ -652,8 +653,15 @@ app.listen(PORT, () => {
   // server. Optional dependency — absence just disables auto-discovery.
   try {
     const { Bonjour } = require('bonjour-service');
-    new Bonjour().publish({ name: 'ArrView', type: 'arrview', port: Number(PORT) });
-    console.log(`    Bonjour: advertising _arrview._tcp on port ${PORT}`);
+    // The SRV target and A records must live under `.local`, or clients resolve
+    // them via unicast DNS and fail. Inside a container os.hostname() is the bare
+    // container ID (no TLD), so append `.local` explicitly. Under host networking
+    // the A records cover every host interface (LAN + docker bridges); clients
+    // connect to whichever address is reachable.
+    const advertiseHost =
+      (process.env.ADVERTISE_HOST || os.hostname()).replace(/\.local\.?$/i, '') + '.local';
+    new Bonjour().publish({ name: 'ArrView', type: 'arrview', port: Number(PORT), host: advertiseHost });
+    console.log(`    Bonjour: advertising _arrview._tcp as ${advertiseHost}:${PORT}`);
   } catch (_) {
     console.log('    Bonjour: bonjour-service not installed — iOS auto-discovery disabled');
   }

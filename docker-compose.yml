@@ -11,6 +11,9 @@ services:
     #   ports:
     #     - "7777:7777"
     network_mode: host
+    # Stable mDNS name: without this, os.hostname() is the random container ID and
+    # the server advertises e.g. `dd26e00d366b.local`. With it, it's `arrview.local`.
+    hostname: arrview
     environment:
       PORT: 7777
       CONFIG_DIR: /data
