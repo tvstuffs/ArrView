@@ -9,6 +9,10 @@ const PORT = process.env.PORT || 7777;
 const CONFIG_DIR = process.env.CONFIG_DIR || __dirname;
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
 
+// Canonical user-facing app version. Surfaced in the Settings page and the
+// /api/arrview/identify endpoint (the iOS app reads it from there).
+const APP_VERSION = '1.03';
+
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'dist')));
 
@@ -39,7 +43,7 @@ app.get('/api/arrview/identify', (req, res) => {
   }
   res.json({
     app: 'arrview',
-    version: require('./package.json').version,
+    version: APP_VERSION,
     services,
   });
 });
