@@ -3,8 +3,17 @@ services:
     image: ghcr.io/tvstuffs/arrview:latest
     container_name: arrview
     restart: unless-stopped
-    ports:
-      - "7777:7777"
+    # Host networking lets the container's Bonjour/mDNS advertisement reach the
+    # LAN, so the iOS app can auto-discover this server. mDNS is multicast and
+    # is NOT forwarded by published ports, so bridge networking breaks discovery.
+    # Linux hosts only; the container binds host port 7777 directly (PORT below).
+    # Don't need iOS auto-discovery? Drop `network_mode: host` and instead add:
+    #   ports:
+    #     - "7777:7777"
+    network_mode: host
+    # Stable mDNS name: without this, os.hostname() is the random container ID and
+    # the server advertises e.g. `dd26e00d366b.local`. With it, it's `arrview.local`.
+    hostname: arrview
     environment:
       PORT: 7777
       CONFIG_DIR: /data
