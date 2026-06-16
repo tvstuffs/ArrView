@@ -11,7 +11,7 @@ const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
 
 // Canonical user-facing app version. Surfaced in the Settings page and the
 // /api/arrview/identify endpoint (the iOS app reads it from there).
-const APP_VERSION = '1.03';
+const APP_VERSION = '1.04';
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'dist')));
@@ -657,15 +657,40 @@ app.listen(PORT, () => {
   // server. Optional dependency — absence just disables auto-discovery.
   try {
     const { Bonjour } = require('bonjour-service');
+
     // The SRV target and A records must live under `.local`, or clients resolve
     // them via unicast DNS and fail. Inside a container os.hostname() is the bare
-    // container ID (no TLD), so append `.local` explicitly. Under host networking
-    // the A records cover every host interface (LAN + docker bridges); clients
-    // connect to whichever address is reachable.
+    // container ID (no TLD), so append `.local` explicitly.
     const advertiseHost =
       (process.env.ADVERTISE_HOST || os.hostname()).replace(/\.local\.?$/i, '') + '.local';
+
+    // Pick a single LAN IPv4 to advertise. Under host networking the container
+    // sees every host interface (LAN + docker0 + bridges + VPNs); advertising
+    // the docker bridge (e.g. 172.17.0.1) hands iOS an unreachable address to
+    // try, which breaks discovery. ADVERTISE_IP overrides the auto-pick.
+    const advertiseIP = process.env.ADVERTISE_IP || (() => {
+      const skip = /^(docker|br-|veth|virbr|cni|flannel|tailscale|zt|wg|lo)/i;
+      for (const [name, addrs] of Object.entries(os.networkInterfaces())) {
+        if (skip.test(name)) continue;
+        for (const a of addrs || []) {
+          if ((a.family === 'IPv4' || a.family === 4) && !a.internal) return a.address;
+        }
+      }
+      return null;
+    })();
+
+    // bonjour-service builds A records from os.networkInterfaces() on every
+    // announce/response with no filter hook, so constrain what it sees to the
+    // chosen address. A non-zero mac is required — it skips 00:..:00 entries.
+    if (advertiseIP) {
+      os.networkInterfaces = () => ({
+        lan: [{ address: advertiseIP, netmask: '255.255.255.0', family: 'IPv4',
+                mac: '02:00:00:00:00:01', internal: false, cidr: `${advertiseIP}/24` }],
+      });
+    }
+
     new Bonjour().publish({ name: 'ArrView', type: 'arrview', port: Number(PORT), host: advertiseHost });
-    console.log(`    Bonjour: advertising _arrview._tcp as ${advertiseHost}:${PORT}`);
+    console.log(`    Bonjour: advertising _arrview._tcp as ${advertiseHost} (${advertiseIP || 'all interfaces'}):${PORT}`);
   } catch (_) {
     console.log('    Bonjour: bonjour-service not installed — iOS auto-discovery disabled');
   }
