@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1024" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#222A3E"/>
+      <stop offset="1" stop-color="#0E1119"/>
+    </linearGradient>
+    <radialGradient id="bgglow" cx="0.5" cy="0.46" r="0.6">
+      <stop offset="0" stop-color="#2BC8F4" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#2BC8F4" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Sonarr cyan (top) -> Radarr amber (bottom) -->
+    <linearGradient id="arr" x1="512" y1="200" x2="512" y2="824" gradientUnits="userSpaceOnUse">
+      <stop offset="0"   stop-color="#34D2F5"/>
+      <stop offset="0.5" stop-color="#5FC9D6"/>
+      <stop offset="1"   stop-color="#FFC233"/>
+    </linearGradient>
+    <filter id="sh" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="20" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <rect width="1024" height="1024" fill="url(#bgglow)"/>
+
+  <!-- Sonarr-inspired radiating arms (navy, sit behind the play frame) -->
+  <g stroke="#39435C" stroke-linecap="round" fill="none">
+    <line x1="512" y1="512" x2="800" y2="512" stroke-width="34"/>
+    <line x1="512" y1="512" x2="388" y2="297" stroke-width="34"/>
+    <line x1="512" y1="512" x2="388" y2="727" stroke-width="34"/>
+  </g>
+  <!-- Sonarr-style bright accent ticks on each arm -->
+  <g stroke="#34D2F5" stroke-linecap="round" fill="none">
+    <line x1="690" y1="512" x2="742" y2="512" stroke-width="34"/>
+    <line x1="452" y1="409" x2="478" y2="454" stroke-width="34"/>
+    <line x1="452" y1="615" x2="478" y2="570" stroke-width="34"/>
+  </g>
+
+  <!-- Radarr-inspired rounded play-triangle frame, cyan->amber stroke -->
+  <path filter="url(#sh)" fill="none" stroke="url(#arr)" stroke-width="76"
+        stroke-linejoin="round" stroke-linecap="round"
+        d="M 842 512 L 347 226 L 347 798 Z"/>
+
+  <!-- Shared DNA: Sonarr's bright center hub -->
+  <circle cx="512" cy="512" r="92" fill="url(#arr)"/>
+  <circle cx="512" cy="512" r="92" fill="#34D2F5" opacity="0.0"/>
+  <circle cx="490" cy="488" r="30" fill="#FFFFFF" opacity="0.22"/>
+</svg>

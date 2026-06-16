@@ -180,7 +180,7 @@ export default function ConfigPage({ initialConfig = {}, onSave, onBack }) {
     <div className="config-page">
       <div className="config-container">
         <header className="config-header">
-          <div className="config-logo">📡</div>
+          <img className="config-logo" src="/arrview-icon.svg" alt="ArrView" width="72" height="72" />
           <h1>ArrView</h1>
           <p className="text-secondary">
             Configure your media server connections to get started.

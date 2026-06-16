@@ -11,7 +11,7 @@ const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
 
 // Canonical user-facing app version. Surfaced in the Settings page and the
 // /api/arrview/identify endpoint (the iOS app reads it from there).
-const APP_VERSION = '1.04';
+const APP_VERSION = '1.05';
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'dist')));

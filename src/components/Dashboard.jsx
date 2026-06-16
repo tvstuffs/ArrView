@@ -82,7 +82,7 @@ export default function Dashboard({ config, onReconfigure }) {
       {/* Top bar */}
       <header className="topbar">
         <div className="topbar-left">
-          <span className="topbar-logo">📡</span>
+          <img className="topbar-logo" src="/arrview-icon.svg" alt="" width="28" height="28" />
           <span className="topbar-title">ArrView</span>
         </div>
 
