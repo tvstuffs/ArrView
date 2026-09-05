@@ -3,3 +3,11 @@ node_modules/
 dist/
 .DS_Store
 server.log
+
+# App Store review demo stack — references a private domain and stands up
+# internet-exposed services. Must never be committed to the public repo.
+demo/
+
+# Agent instructions with local paths — never commit in this public repo
+CLAUDE.local.md
+.claude/settings.local.json

@@ -6,3 +6,12 @@ npm-debug.log
 coverage
 server.log
 README.md
+CLAUDE*.md
+.claude
+demo
+config.json
+data
+dist
+.github
+.DS_Store
+*.md
